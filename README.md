@@ -6,6 +6,7 @@
 [![Source](https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/smatrix/)
 [![GitHub issues](https://img.shields.io/github/issues/althonos/smatrix.svg?style=flat-square&maxAge=600)](https://github.com/althonos/smatrix/issues)
 
+
 ## Introduction
 
 `slurm` is a workload manager, and it is typically used to parallelize work
@@ -35,7 +36,20 @@ $ smatrix --cpus-per-task 2 -P:f1 0.02 0.01 -P:file /data/seq1.fa /data/seq2.fa 
 
 This command will launch 4 jobs, using 2 CPUs per job (using the same option
 as with `sbatch`), for all possible combinations of `$f1` and `$file` as given
-in the CLI arguments.
+in the CLI arguments. `--cpus-per-task` is a builtin `sbatch` option, so it
+will be transparently given to SLURM when we queue the job.
+The other arguments however are being used by `smatrix` to setup the job array.
+
+
+
+### `smatrix`-hijacked options
+
+### `--wrap` flag
+
+The `--wrap` CLI flag is used to pass the command to wrap in a script. It will
+get executed once for every element of the job matrix created with the parameters
+given to the CLI.
+
 
 
 ### `smatrix`-specific options

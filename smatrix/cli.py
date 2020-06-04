@@ -106,11 +106,6 @@ def main(argv=None):
         parameters_list=parameters_list,
         cmd=args.wrap,
         args=args,
-
-        # sbatch options
-        account=args.account,
-        cpus_per_task=args.cpus_per_task,
-        time=args.time,
     )
 
     # write the script file to a temporary location and pass it to sbatch
