@@ -52,7 +52,7 @@ $ smatrix --param:n $(seq 1 100) --param:file /etc/*.conf --wrap '...'
 ```
 
 Note that, in this example, the glob pattern expansion is done by the shell
-and may have escaping issues if the filenames contain whitespace characters`
+and may have escaping issues if the filenames contain whitespace characters.
 
 #### `--wrap` flag
 

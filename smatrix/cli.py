@@ -115,7 +115,7 @@ def main(argv=None):
 
     # write the script file to a temporary location and pass it to sbatch
     with tempfile.NamedTemporaryFile(suffix=".sh", delete=False, mode="w") as script_file:
-        print("[bold green]Writing[/bold green] job script to [bold]{}[/bold]".format(script_file.name))
+        print("[bold green]Writing[/bold green] job script to [bold blue]{}[/bold blue]".format(script_file.name))
         script_file.write(script)
         script_file.flush()
 
