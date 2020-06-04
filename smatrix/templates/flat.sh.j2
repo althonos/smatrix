@@ -1,0 +1,11 @@
+{% include 'header.sh.j2' %}
+
+export __PARAMS_LIST=${{ parameters_list | quote }}
+export __SEP=${{ separator | quote }}
+export __PARAMS=$(echo $__PARAMS_LIST | tail -n +$SLURM_ARRAY_TASK_ID | head -n 1)
+
+{%- for parameter in parameters %}
+export {{ parameter }}=$(echo $__PARAMS | cut -f $(expr {{ loop.index }} '+' $SLURM_ARRAY_TASK_ID '*' {{ parameters | length }}) -d $__SEP)
+{%- endfor %}
+
+{{ cmd }}
