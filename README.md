@@ -29,14 +29,18 @@ cluster. Think `xargs`, except it spawns `slurm` jobs instead of processes.
 and some additional flags to pass parameters. A quick example:
 
 ```console
-$ smatrix                                            \
-    --cpus-per-task 2                                \
-    -P:f1 0.02 0.01                                  \
-    -P:file /data/seq1.fa /data/seq2.fa              \
+$ smatrix --cpus-per-task 2 -P:f1 0.02 0.01 -P:file /data/seq1.fa /data/seq2.fa   \
     --wrap 'hmmsearch --F1=$f1 Pfam.hmm $file'
 ```
 
-### `-P` / `--param` flag
+This command will launch 4 jobs, using 2 CPUs per job (using the same option
+as with `sbatch`), for all possible combinations of `$f1` and `$file` as given
+in the CLI arguments.
+
+
+### `smatrix`-specific options
+
+#### `-P` / `--param` flag
 
 The `-P` flag is the only new flag introduced by `smatrix`. Use it to specify
 parameter arrays
@@ -50,15 +54,7 @@ $ smatrix --param:n $(seq 1 100) --param:file /etc/*.conf --wrap '...'
 Note that, in this example, the glob pattern expansion is done by the shell
 and may have escaping issues if the filenames contain whitespace characters`
 
-
-### `--wrap` flag
+#### `--wrap` flag
 
 `--wrap` was already there in `sbatch`, but `smatrix` wraps the command
 differently, since it will also expose the parameters you request with `-P`.
-
-
-## Compatibility
-
-Designed to work with `bash` in mind. `fish` generally works, but has some
-issues with subshell expansion and CLI parameter handling. Untested with
-`zsh` or any other shell.
