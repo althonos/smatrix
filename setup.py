@@ -43,11 +43,11 @@ class build_py(_build_py):
                 kebab, snake = option["name"], option["name"].replace("-", "_")
                 if "meta" in option:
                     f.write("{{%- if not args.{} is none %}}\n".format(snake))
-                    f.write("# SBATCH --{} {{{{ args.{} }}}}\n".format(kebab, snake))
+                    f.write("#SBATCH --{} {{{{ args.{} }}}}\n".format(kebab, snake))
                     f.write("{%- endif %}\n")
                 else:
                     f.write("{{%- if args.{} %}}\n".format(snake))
-                    f.write("# SBATCH --{}\n".format(kebab))
+                    f.write("#SBATCH --{}\n".format(kebab))
                     f.write("{%- endif %}\n")
 
 
