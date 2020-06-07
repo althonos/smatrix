@@ -1,11 +1,17 @@
 {% include 'header.sh.j2' %}
 
-export __PARAMS_LIST=${{ parameters_list | quote }}
+export __PARAMS=${{ parameters_list | quote }}
 export __SEP=${{ separator | quote }}
-export __PARAMS=$(echo $__PARAMS_LIST | tail -n +$SLURM_ARRAY_TASK_ID | head -n 1)
+export __TASKS_PER_JOB={{ tasks_per_job }}
 
-{%- for parameter in parameters %}
-export {{ parameter }}=$(echo $__PARAMS | cut -f $(expr {{ loop.index }} '+' $SLURM_ARRAY_TASK_ID '*' {{ parameters | length }}) -d $__SEP)
-{%- endfor %}
+for i in $(seq $__TASKS_PER_JOB); do
 
-{{ cmd }}
+    export __INDEX=$( expr $SLURM_ARRAY_TASK_ID '*' $__TASKS_PER_JOB '*' {{ parameters | length }} '+' $i )
+
+    {%- for parameter in parameters %}
+    export {{ parameter }}=$(echo $__PARAMS | cut -f $(expr {{ loop.index0 }} '+' $__INDEX) -d $__SEP)
+    {%- endfor %}
+
+    {{ cmd }}
+
+done

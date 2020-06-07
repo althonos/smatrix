@@ -2,6 +2,7 @@ import argparse
 import collections
 import itertools
 import json
+import math
 import subprocess
 import tempfile
 import pkg_resources
@@ -43,8 +44,8 @@ def build_sbatch_parser():
 
 def parse_param_args(argv):
 
-    param_name = ""
-    params = {"": []}
+    param_name = _UNKNOWN = object()
+    params = {_UNKNOWN: []}
 
     for arg in argv:
 
@@ -52,13 +53,15 @@ def parse_param_args(argv):
             _, param_name = arg.split(":", maxsplit=1)
             if not param_name:
                 raise ValueError("invalid parameter name")
+            if param_name in params:
+                raise ValueError("parameter name given twice: {}".format(param_name))
             params[param_name] = []
         elif arg == "--":
-            param_name = ""
+            param_name = _UNKNOWN
         else:
             params[param_name].append(arg)
 
-    unknown_params = params.pop("")
+    unknown_params = params.pop(_UNKNOWN)
     if unknown_params:
         raise ValueError("unrecognized arguments: {}".format(unknown_params))
 
@@ -70,7 +73,6 @@ def main(argv=None):
     sbatch_parser = build_sbatch_parser()
     args, remainder = sbatch_parser.parse_known_args()
     args.param = parse_param_args(remainder)
-    print(args)
 
     # build the jinja environment
     env = jinja2.Environment(loader=jinja2.PackageLoader(__package__))
@@ -88,7 +90,15 @@ def main(argv=None):
 
     # build parameter matrix
     matrix = list(itertools.product(*args.param.values()))
-    print("[bold green]Preparing[/bold green] a total of [bold]{}[/bold] jobs".format(len(matrix)))
+    print("[bold green]Preparing[/bold green] a total of [bold]{}[/bold] tasks".format(len(matrix)))
+
+    # query max number of jobs and adjust the number of task per array job
+    # TODO: use sacctmgr
+    max_job_count = 100
+    job_count = min(max_job_count, len(matrix))
+    tasks_per_job = math.ceil(len(matrix) / job_count)
+    job_count = math.ceil(len(matrix) / tasks_per_job)
+    print("[bold green]Using[/bold green] [bold]{}[/bold] job arrays with maximum [bold]{}[/bold] tasks each".format(job_count, tasks_per_job))
 
     # build flat list of parameters to embed in the script
     parameters_list = separator.join(p for params in matrix for p in params)
@@ -106,6 +116,7 @@ def main(argv=None):
         parameters_list=parameters_list,
         cmd=args.wrap,
         args=args,
+        tasks_per_job=tasks_per_job,
     )
 
     # write the script file to a temporary location and pass it to sbatch
@@ -115,7 +126,7 @@ def main(argv=None):
         script_file.flush()
 
         print("[bold green]Launching[/bold green] job script with [bold]sbatch[/bold]")
-        args = ["sbatch", "-a", "1-{}".format(job_count), script_file.name]
+        args = ["sbatch", "--array=0-{}".format(job_count-1), script_file.name]
         proc = subprocess.run(args, capture_output=True)
 
     # check the job was successfully queued
