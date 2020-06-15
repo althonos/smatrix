@@ -44,11 +44,14 @@ The other arguments however are being used by `smatrix` to setup the job array.
 
 ### `smatrix`-hijacked options
 
-### `--wrap` flag
+#### `--wrap` flag
 
 The `--wrap` CLI flag is used to pass the command to wrap in a script. It will
 get executed once for every element of the job matrix created with the parameters
 given to the CLI.
+
+
+
 
 
 
