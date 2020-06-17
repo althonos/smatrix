@@ -39,6 +39,13 @@ def build_sbatch_parser():
                 kwargs["action"] = "store_true"
             parser.add_argument(*args, **kwargs)
 
+    # add a custom `setup` option
+    parser.add_argument(
+        "--setup",
+        action="append",
+        help="setup command to run once per node (can be repeated)"
+    )
+
     return parser
 
 
@@ -105,8 +112,6 @@ def main(argv=None):
     parameters_list = separator.join(p for params in matrix for p in params)
 
     # get the job count and script template
-    # FIXME: handle len(matrix) > max slurm job count using script template
-    #        with inner loop
     job_count = len(matrix) or 1
     template = env.get_template("flat.sh.j2")
 
@@ -118,6 +123,7 @@ def main(argv=None):
         cmd=args.wrap,
         args=args,
         tasks_per_job=tasks_per_job,
+        setup=args.setup,
     )
 
     # write the script file to a temporary location and pass it to sbatch

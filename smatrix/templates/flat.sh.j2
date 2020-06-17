@@ -4,6 +4,11 @@ export __PARAMS=${{ parameters_list | quote }}
 export __SEP=${{ separator | quote }}
 export __TASKS_PER_JOB={{ tasks_per_job }}
 
+{%- for cmd in setup %}
+{{ cmd }}
+{%- endfor %}
+
+
 for i in $(seq $__TASKS_PER_JOB); do
 
     export __INDEX=$( expr $SLURM_ARRAY_TASK_ID '*' $__TASKS_PER_JOB '*' {{ parameters | length }} '+' $i )
