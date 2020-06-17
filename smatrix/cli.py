@@ -12,6 +12,7 @@ from rich import print
 from rich.syntax import Syntax
 
 from . import __name__ as __package__
+from .slurm import QosConfiguration
 
 
 _MAX_JOBS = 1000
