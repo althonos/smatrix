@@ -127,7 +127,7 @@ def main(argv=None):
 
         print("[bold green]Launching[/bold green] job script with [bold]sbatch[/bold]")
         args = ["sbatch", "--array=0-{}".format(job_count-1), script_file.name]
-        proc = subprocess.run(args, capture_output=True)
+        proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
     # check the job was successfully queued
     if proc.returncode == 0:
