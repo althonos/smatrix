@@ -94,7 +94,8 @@ def main(argv=None):
 
     # query max number of jobs and adjust the number of task per array job
     # TODO: use sacctmgr
-    max_job_count = 100
+    config = QosConfiguration(qos=args.qos or "normal")
+    max_job_count = config.max_submit_per_user or config.max_submit_per_account or float('inf')
     job_count = min(max_job_count, len(matrix))
     tasks_per_job = math.ceil(len(matrix) / job_count)
     job_count = math.ceil(len(matrix) / tasks_per_job)
