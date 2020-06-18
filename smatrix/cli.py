@@ -104,28 +104,26 @@ def main(argv=None):
     # TODO: use sacctmgr
     config = QosConfiguration(qos=args.qos or "normal")
     max_job_count = config.max_submit_per_user or config.max_submit_per_account or float('inf')
-    job_count = min(max_job_count, len(matrix))
-    tasks_per_job = math.ceil(len(matrix) / job_count)
-    job_count = math.ceil(len(matrix) / tasks_per_job)
+    job_count = min(max_job_count, len(matrix) or 1)
+    tasks_per_job = math.ceil((len(matrix) or 1) / job_count)
+    job_count = math.ceil((len(matrix) or 1) / tasks_per_job)
     print("[bold green]Using[/bold green] [bold]{}[/bold] job arrays with maximum [bold]{}[/bold] tasks each".format(job_count, tasks_per_job))
 
-    # build flat list of parameters to embed in the script
-    parameters_list = separator.join(p for params in matrix for p in params)
-
     # get the job count and script template
-    job_count = len(matrix) or 1
+    tasks_count = len(matrix) or 1
     template = env.get_template("flat.sh.j2")
 
     # render the script
     script = template.render(
         separator=separator,
         parameters=args.param,
-        parameters_list=parameters_list,
+        tasks_count=tasks_count,
         cmd=args.wrap,
         args=args,
         tasks_per_job=tasks_per_job,
         setup=args.setup,
     )
+    # print(Syntax(script, "bash"))
 
     # write the script file to a temporary location and pass it to sbatch
     with tempfile.NamedTemporaryFile(suffix=".sh", delete=False, mode="w") as script_file:
