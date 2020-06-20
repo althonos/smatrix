@@ -17,12 +17,12 @@ __ARRAY_{{ parameter }}={{ values | join(separator) | quote }}
 
 for i in $(seq $__TASKS_PER_JOB); do
 
-    __INDEX=$( expr $SLURM_ARRAY_TASK_ID '*' $__TASKS_PER_JOB '+' $i '-' 1)
+    __INDEX=$(( SLURM_ARRAY_TASK_ID * __TASKS_PER_JOB + i - 1 ))
     __I=$__INDEX
 
     if [ $__INDEX -lt $__TASKS_TOTAL ]; then
         {%- for parameter, values in args.param.items() %}
-        export {{ parameter }}=$(echo $__ARRAY_{{ parameter }} | cut -f $(expr $__I '%' {{ values | length }} '+' 1) -d $__SEP)
+        export {{ parameter }}=$(echo $__ARRAY_{{ parameter }} | cut -f $(( __I % {{ values | length }} + 1 )) -d $__SEP)
         __I=$(expr $__I '/' {{ values | length }} )
         {%- endfor %}
         {{ args.wrap }}
