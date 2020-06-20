@@ -116,12 +116,9 @@ def main(argv=None):
     # render the script
     script = template.render(
         separator=separator,
-        parameters=args.param,
         tasks_count=tasks_count,
-        cmd=args.wrap,
-        args=args,
         tasks_per_job=tasks_per_job,
-        setup=args.setup,
+        args=args,
     )
     # print(Syntax(script, "bash"))
 

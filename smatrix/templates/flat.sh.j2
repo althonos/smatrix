@@ -1,18 +1,15 @@
 {% include 'header.sh.j2' %}
 
-{# export __PARAMS=${{ parameters_list | quote }} #}
 __SEP=${{ separator | quote }}
 __TASKS_PER_JOB={{ tasks_per_job }}
 __TASKS_TOTAL={{ tasks_count }}
 
-# PARAMETERS 
-{% for parameter, values in parameters.items() %}
+{% for parameter, values in args.param.items() %}
 __ARRAY_{{ parameter }}={{ values | join(separator) | quote }}
 {%- endfor %}
 
-{%- if not setup is none %}
-# SETUP
-{% for cmd in setup %}
+{%- if not args.setup is none %}
+{% for cmd in args.setup %}
 {{ cmd }}
 {%- endfor %}
 {%- endif %}
@@ -24,11 +21,11 @@ for i in $(seq $__TASKS_PER_JOB); do
     __I=$__INDEX
 
     if [ $__INDEX -lt $__TASKS_TOTAL ]; then
-        {%- for parameter, values in parameters.items() %}
+        {%- for parameter, values in args.param.items() %}
         export {{ parameter }}=$(echo $__ARRAY_{{ parameter }} | cut -f $(expr $__I '%' {{ values | length }} '+' 1) -d $__SEP)
         __I=$(expr $__I '/' {{ values | length }} )
         {%- endfor %}
-        {{ cmd }}
+        {{ args.wrap }}
     fi
 
 done
