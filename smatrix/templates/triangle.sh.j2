@@ -1,0 +1,34 @@
+{% include 'header.sh.j2' %}
+
+__SEP=${{ separator | quote }}
+__TASKS_PER_JOB={{ tasks_per_job }}
+__TASKS_TOTAL={{ tasks_count }}
+
+{% for parameter, values in args.param.items() %}
+__ARRAY_{{ parameter }}={{ values | join(separator) | quote }}
+{%- endfor %}
+
+{%- if not args.setup is none %}
+{% for cmd in args.setup %}
+{{ cmd }}
+{%- endfor %}
+{%- endif %}
+
+
+for i in $(seq $__TASKS_PER_JOB); do
+
+    __INDEX=$(( SLURM_ARRAY_TASK_ID * __TASKS_PER_JOB + i - 1 ))
+    __I=$__INDEX
+
+    if [ $__INDEX -lt $__TASKS_TOTAL ]; then
+        {%- for parameter, values in args.param.items() %}
+        __index_{{ loop.index }}=$(( __I % {{ values | length }} + 1 ))
+        export {{ parameter }}=$(echo $__ARRAY_{{ parameter }} | cut -f $__index_{{ loop.index }} -d $__SEP)
+        __I=$(( __I / {{ values | length }} ))
+        {%- endfor %}
+
+        if {% for _ in args.param -%} {%- if not loop.last -%} [ ! $__index_{{ loop.index }} \< $__index_{{ loop.index + 1 }} ] && {% else %} true; then {%- endif -%} {% endfor %}
+          {{ args.wrap }}
+        fi
+    fi
+done

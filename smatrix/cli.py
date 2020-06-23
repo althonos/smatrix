@@ -47,6 +47,13 @@ def build_sbatch_parser():
         help="setup command to run once per node (can be repeated)"
     )
 
+    #
+    parser.add_argument(
+        "--triangular",
+        action="store_true",
+        help="use only a triangular matrix of parameters"
+    )
+
     return parser
 
 
@@ -102,8 +109,9 @@ def main(argv=None):
 
     # query max number of jobs and adjust the number of task per array job
     # TODO: use sacctmgr
-    config = QosConfiguration(qos=args.qos or "normal")
-    max_job_count = config.max_submit_per_user or config.max_submit_per_account or _MAX_JOBS
+    #config = QosConfiguration(qos=args.qos or "normal")
+    #max_job_count = config.max_submit_per_user or config.max_submit_per_account or _MAX_JOBS
+    max_job_count = _MAX_JOBS
     job_count = min(max_job_count, len(matrix) or 1)
     tasks_per_job = math.ceil((len(matrix) or 1) / job_count)
     job_count = math.ceil((len(matrix) or 1) / tasks_per_job)
@@ -111,7 +119,7 @@ def main(argv=None):
 
     # get the job count and script template
     tasks_count = len(matrix) or 1
-    template = env.get_template("flat.sh.j2")
+    template = env.get_template("triangle.sh.j2" if args.triangular else "square.sh.j2")
 
     # render the script
     script = template.render(
