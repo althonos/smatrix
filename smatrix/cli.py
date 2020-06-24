@@ -5,6 +5,7 @@ import json
 import math
 import subprocess
 import tempfile
+import textwrap
 import pkg_resources
 
 import jinja2
@@ -119,7 +120,18 @@ def main(argv=None):
 
     # get the job count and script template
     tasks_count = len(matrix) or 1
-    template = env.get_template("triangle.sh.j2" if args.triangular else "square.sh.j2")
+    if args.triangular and tasks_count > 1:
+        template = env.get_template("triangle.sh.j2")
+        shape = list(map(len, args.param.values()))
+        if not all(x == shape[0] for x in shape):
+            dims = 'x'.join(map(str, shape))
+            print("[bold red]Failed[/bold red] launching triangular job with non-square matrix ({})".format(dims))
+            return 1
+    else:
+        template = env.get_template("square.sh.j2")
+
+    # check the argument matrix is square if in triangular mode
+
 
     # render the script
     script = template.render(
@@ -138,14 +150,14 @@ def main(argv=None):
 
         print("[bold green]Launching[/bold green] job script with [bold]sbatch[/bold]")
         args = ["sbatch", "--array=0-{}".format(job_count-1), script_file.name]
-        proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        proc = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # check the job was successfully queued
     if proc.returncode == 0:
         job_id = int(proc.stdout.rsplit(b" ", maxsplit=1)[-1].strip())
         print("[bold green]Successfully[/bold green] launched job with id [bold]{}[/bold]".format(job_id))
     else:
-        print("[bold red]Failed[/bold red] launching job")
-        print(Syntax(proc.stderr, "bash"))
+        print("[bold red]Failed[/bold red] launching job with error:")
+        print(Syntax(textwrap.indent(proc.stderr.decode('utf-8'), '    '), "bash"))
 
     return proc.returncode
