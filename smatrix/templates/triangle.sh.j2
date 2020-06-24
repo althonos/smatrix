@@ -27,7 +27,7 @@ for i in $(seq $__TASKS_PER_JOB); do
         __I=$(( __I / {{ values | length }} ))
         {%- endfor %}
 
-        if {% for _ in args.param -%} {%- if not loop.last -%} [ ! $__index_{{ loop.index }} \< $__index_{{ loop.index + 1 }} ] && {% else %} true; then {%- endif -%} {% endfor %}
+        if {% for _ in args.param -%} {% if not loop.last %} {%- if not loop.first %} && {% endif %} [ ! $__index_{{ loop.index }} -lt $__index_{{ loop.index + 1 }} ] {% endif %} {% endfor %}; then
           {{ args.wrap }}
         fi
     fi
